@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ShieldCheck, User, Lock, ArrowRight, AlertCircle, CheckCircle, Sparkles } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 export default function LoginPage() {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -23,7 +24,7 @@ export default function LoginPage() {
     const endpoint = isRegisterMode ? "/api/auth/register" : "/api/auth/login";
 
     try {
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
+      const res = await fetch(getApiUrl(endpoint), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

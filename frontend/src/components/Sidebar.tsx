@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getApiUrl } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { Users, Search, LayoutGrid, Scale, Activity, Sun, Moon, Home, Calendar, User, LogOut, BookOpen } from "lucide-react";
 
@@ -41,7 +42,7 @@ export default function Sidebar() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/clients", { signal: AbortSignal.timeout(3000) });
+        const res = await fetch(getApiUrl("/api/clients"), { signal: AbortSignal.timeout(3000) });
         if (res.ok) {
           setBackendStatus("online");
         } else {

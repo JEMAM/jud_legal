@@ -5,6 +5,7 @@ import {
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, 
   Clock, Edit, Info, LayoutGrid, X, Briefcase, Plus 
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface Processo {
   id: number;
@@ -34,7 +35,7 @@ export default function AgendaPage() {
   const fetchProcesses = async () => {
     try {
       const user = localStorage.getItem("logged_in_user") || "";
-      const res = await fetch(`http://localhost:8000/api/processes?usuario=${encodeURIComponent(user)}`);
+      const res = await fetch(getApiUrl(`/api/processes?usuario=${encodeURIComponent(user)}`));
       if (res.ok) {
         const data = await res.json();
         setProcesses(data);
@@ -142,7 +143,7 @@ export default function AgendaPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/processes/${editingProcessId}`, {
+      const res = await fetch(getApiUrl(`/api/processes/${editingProcessId}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

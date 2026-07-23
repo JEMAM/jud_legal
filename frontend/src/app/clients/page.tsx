@@ -6,6 +6,7 @@ import {
   Trash2, Edit, AlertCircle, CheckCircle, Search, Info, Plus, X,
   Scale, Users, LayoutGrid
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface Processo {
   id: number;
@@ -154,8 +155,8 @@ export default function ClientsPage() {
       const user = localStorage.getItem("logged_in_user") || "";
       const userParam = user ? `?usuario=${encodeURIComponent(user)}` : "";
       const [resClients, resProcs] = await Promise.all([
-        fetch(`http://localhost:8000/api/clients${userParam}`),
-        fetch(`http://localhost:8000/api/processes${userParam}`)
+        fetch(getApiUrl(`/api/clients${userParam}`)),
+        fetch(getApiUrl(`/api/processes${userParam}`))
       ]);
       if (resClients.ok && resProcs.ok) {
         const clientsData = await resClients.json();
@@ -295,13 +296,13 @@ export default function ClientsPage() {
     try {
       let res;
       if (editingId) {
-        res = await fetch(`http://localhost:8000/api/clients/${editingId}`, {
+        res = await fetch(getApiUrl(`/api/clients/${editingId}`), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch("http://localhost:8000/api/clients", {
+        res = await fetch(getApiUrl("/api/clients"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -375,7 +376,7 @@ export default function ClientsPage() {
   const handleDelete = async (id: number) => {
     if (!confirm("Deseja realmente remover este cliente? Todos os processos vinculados ficarão sem cliente associado.")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/clients/${id}`, {
+      const res = await fetch(getApiUrl(`/api/clients/${id}`), {
         method: "DELETE",
       });
       if (res.ok) {

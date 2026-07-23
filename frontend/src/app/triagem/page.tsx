@@ -7,6 +7,7 @@ import {
   Briefcase, ChevronDown
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { getApiUrl } from "@/lib/api";
 
 interface ProcessoDropdown {
   id: number;
@@ -231,7 +232,7 @@ export default function TriagemPage() {
     const loadProcesses = async () => {
       try {
         const user = localStorage.getItem("logged_in_user") || "";
-        const res = await fetch(`http://localhost:8000/api/processes?usuario=${encodeURIComponent(user)}`);
+        const res = await fetch(getApiUrl(`/api/processes?usuario=${encodeURIComponent(user)}`));
         if (res.ok) {
           const data = await res.json();
           setProcessesList(data);
@@ -340,7 +341,7 @@ export default function TriagemPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8000/api/search-pje", {
+      const res = await fetch(getApiUrl("/api/search-pje"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -461,7 +462,7 @@ export default function TriagemPage() {
           tese_defesa: teseDefesa
         };
 
-        const res = await fetch("http://localhost:8000/api/run-agents", {
+        const res = await fetch(getApiUrl("/api/run-agents"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -488,7 +489,7 @@ export default function TriagemPage() {
         // Wait 2 seconds before polling
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        const statusRes = await fetch(`http://localhost:8000/api/run-agents/status/${taskId}`);
+        const statusRes = await fetch(getApiUrl(`/api/run-agents/status/${taskId}`));
         if (!statusRes.ok) {
           if (statusRes.status === 404) {
             localStorage.removeItem("triagem_taskId");
@@ -574,7 +575,7 @@ export default function TriagemPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8000/api/save-deadline", {
+      const res = await fetch(getApiUrl("/api/save-deadline"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -5,6 +5,7 @@ import {
   LayoutGrid, Trash2, Edit, CheckSquare, Square, 
   ChevronDown, X, Info, Calendar, Briefcase
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface Processo {
   id: number;
@@ -54,7 +55,7 @@ export default function KanbanPage() {
   const fetchProcesses = async () => {
     try {
       const user = localStorage.getItem("logged_in_user") || "";
-      const res = await fetch(`http://localhost:8000/api/processes?usuario=${encodeURIComponent(user)}`);
+      const res = await fetch(getApiUrl(`/api/processes?usuario=${encodeURIComponent(user)}`));
       if (res.ok) {
         const data = await res.json();
         setProcesses(data);
@@ -144,7 +145,7 @@ export default function KanbanPage() {
     setProcesses(prev => prev.map(p => p.id === processId ? { ...p, status: targetStatus } : p));
 
     try {
-      const res = await fetch(`http://localhost:8000/api/processes/${processId}`, {
+      const res = await fetch(getApiUrl(`/api/processes/${processId}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: targetStatus })
@@ -162,7 +163,7 @@ export default function KanbanPage() {
   const handleDeleteProcess = async (id: number) => {
     if (!confirm("Deseja realmente remover este processo do escritório?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/processes/${id}`, {
+      const res = await fetch(getApiUrl(`/api/processes/${id}`), {
         method: "DELETE"
       });
       if (res.ok) {
@@ -194,7 +195,7 @@ export default function KanbanPage() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/processes/${editingProcessId}`, {
+      const res = await fetch(getApiUrl(`/api/processes/${editingProcessId}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
