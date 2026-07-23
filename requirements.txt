@@ -1,0 +1,14 @@
+gradio
+agno
+pydantic>=2.0
+httpx
+loguru
+mcp
+openai
+anthropic
+google-genai
+pandas
+ollama
+groq
+fastapi
+uvicorn

@@ -1,0 +1,271 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: var(--font-inter), sans-serif;
+  --font-display: var(--font-outfit), sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #020617; /* slate-950 */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a; /* slate-900 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155; /* slate-700 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* slate-600 */
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Extra small fonts */
+.text-xxs {
+  font-size: 0.65rem;
+}
+.text-xxxs {
+  font-size: 0.55rem;
+}
+
+/* =====================================================================
+   ☀️ LIGHT MODE OVERRIDES
+   ===================================================================== */
+
+/* Light mode root & body overrides */
+.theme-light,
+.theme-light body {
+  background-color: #f8fafc !important; /* slate-50 */
+  color: #0f172a !important; /* slate-900 */
+}
+
+/* Overrides for background utilities */
+.theme-light .bg-slate-950 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+.theme-light .bg-slate-900 {
+  background-color: #f1f5f9 !important; /* slate-100 */
+  color: #0f172a !important;
+}
+.theme-light .bg-slate-900\/60 {
+  background-color: rgba(241, 245, 249, 0.6) !important;
+}
+.theme-light .bg-slate-850\/50 {
+  background-color: rgba(226, 232, 240, 0.5) !important; /* slate-200 */
+}
+.theme-light .bg-slate-950\/40 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+.theme-light .bg-slate-950\/80 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #cbd5e1 !important;
+}
+.theme-light .bg-slate-800 {
+  background-color: #e2e8f0 !important; /* slate-200 */
+  color: #0f172a !important;
+}
+.theme-light .bg-slate-750,
+.theme-light .hover\:bg-slate-750:hover {
+  background-color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Overrides for border utilities */
+.theme-light .border-slate-800,
+.theme-light .border-slate-850,
+.theme-light .border-slate-900\/80,
+.theme-light .border-slate-700 {
+  border-color: #cbd5e1 !important; /* slate-300 */
+}
+.theme-light .border-slate-750 {
+  border-color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Overrides for text color utilities */
+.theme-light .text-white {
+  color: #0f172a !important; /* slate-900 */
+}
+.theme-light .text-slate-200 {
+  color: #1e293b !important; /* slate-800 */
+}
+.theme-light .text-slate-300 {
+  color: #334155 !important; /* slate-700 */
+}
+.theme-light .text-slate-400 {
+  color: #475569 !important; /* slate-600 */
+}
+.theme-light .text-slate-500 {
+  color: #64748b !important; /* slate-500 */
+}
+.theme-light .text-slate-350 {
+  color: #334155 !important;
+}
+
+/* Overrides to ensure light text inside dark components remains visible */
+.theme-light .hero-container .text-white,
+.theme-light .bg-indigo-600,
+.theme-light .bg-indigo-600 *,
+.theme-light .bg-indigo-750,
+.theme-light .bg-indigo-750 *,
+.theme-light .bg-indigo-500,
+.theme-light .bg-indigo-500 *,
+.theme-light .bg-emerald-600,
+.theme-light .bg-emerald-600 *,
+.theme-light .bg-rose-600,
+.theme-light .bg-rose-600 *,
+.theme-light .bg-rose-500,
+.theme-light .bg-rose-500 *,
+.theme-light .bg-indigo-500,
+.theme-light .bg-indigo-500 * {
+  color: #ffffff !important;
+}
+
+.theme-light .hero-container .text-slate-100,
+.theme-light .hero-container .text-slate-200,
+.theme-light .hero-container h1 {
+  color: #f8fafc !important; /* slate-50 */
+}
+
+.theme-light .hero-container .text-slate-400,
+.theme-light .hero-container p {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
+.theme-light .hero-container .text-slate-450 {
+  color: #cbd5e1 !important;
+}
+
+/* Retain dark background styles for subcomponents inside hero container under light mode */
+.theme-light .hero-container .bg-slate-900 {
+  background-color: #0f172a !important;
+}
+.theme-light .hero-container .border-slate-800 {
+  border-color: #1e293b !important;
+}
+.theme-light .hero-container .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+
+/* Interactive hover backgrounds */
+.theme-light .hover\:bg-slate-800\/60:hover {
+  background-color: #f1f5f9 !important;
+}
+.theme-light .hover\:bg-slate-900\/60:hover {
+  background-color: #e2e8f0 !important;
+}
+.theme-light .hover\:bg-slate-850:hover {
+  background-color: #cbd5e1 !important;
+}
+.theme-light .hover\:border-slate-750:hover {
+  border-color: #64748b !important;
+}
+
+/* Sidebar specific overrides */
+.theme-light aside {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Sidebar active indicators */
+.theme-light .bg-indigo-600\/10 {
+  background-color: rgba(79, 70, 229, 0.1) !important;
+}
+.theme-light .text-indigo-400 {
+  color: #4f46e5 !important; /* dark indigo */
+}
+.theme-light .text-sky-400 {
+  color: #0284c7 !important; /* sky-600 */
+}
+.theme-light .text-emerald-400 {
+  color: #059669 !important; /* emerald-600 */
+}
+.theme-light .text-amber-400 {
+  color: #d97706 !important; /* amber-600 */
+}
+.theme-light .text-purple-400 {
+  color: #7c3aed !important; /* purple-600 */
+}
+
+/* Badge backgrounds in light mode */
+.theme-light .bg-indigo-500\/10 {
+  background-color: rgba(79, 70, 229, 0.12) !important;
+}
+.theme-light .bg-sky-500\/10 {
+  background-color: rgba(2, 132, 199, 0.12) !important;
+}
+.theme-light .bg-emerald-500\/10 {
+  background-color: rgba(5, 150, 105, 0.12) !important;
+}
+.theme-light .bg-amber-500\/10 {
+  background-color: rgba(217, 119, 6, 0.12) !important;
+}
+.theme-light .bg-purple-500\/10 {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+}
+
+/* Cards & Containers in light mode */
+.theme-light .bg-slate-900\/70,
+.theme-light .bg-slate-900\/80,
+.theme-light .bg-slate-900\/90,
+.theme-light .bg-slate-900 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .bg-slate-950 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Inputs autofocus ring */
+.theme-light input:focus,
+.theme-light textarea:focus,
+.theme-light select:focus {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Scrollbars */
+.theme-light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+.theme-light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+/* Year view calendar expired day layout */
+.year-day-expired {
+  background-color: #fef01e !important;
+  color: #0f1e33 !important;
+  font-weight: 800 !important;
+}
