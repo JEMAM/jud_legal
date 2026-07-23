@@ -123,9 +123,9 @@ export default function GuiaPage() {
                   Modelos Suportados
                 </div>
                 <ul className="space-y-2 text-sm text-slate-300">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Google Gemini:</strong> gemini-2.5-flash (rápido e altamente preciso)</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>ChatGPT (OpenAI):</strong> gpt-4o-mini / gpt-4o</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Anthropic Claude:</strong> claude-3-5-sonnet-20241022</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Google Gemini:</strong> gemini-3.5-flash / gemini-2.5-flash (ultra veloz e preciso)</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>ChatGPT (OpenAI):</strong> gpt-5.6 / gpt-4o / gpt-4o-mini</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Anthropic Claude:</strong> claude-opus-4.8 / claude-3-5-sonnet</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Groq Cloud:</strong> llama-3.3-70b-versatile (super veloz)</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> <strong>Ollama Local:</strong> llama3.2 (executa localmente sem custo de API)</li>
                 </ul>
