@@ -332,6 +332,11 @@ export default function TriagemPage() {
     setPrazosDetectados([]);
     setAiError("");
 
+    const selectedProcesses = processesList.filter(p =>
+      selectedMonitorProcessIds.length > 0 ? selectedMonitorProcessIds.includes(p.id) : true
+    );
+    const monitoredCnjs = selectedProcesses.map(p => p.mascara.replace(/\D/g, "")).filter(Boolean);
+
     const payload = {
       data_ini: dataIni.split("-").reverse().join("-"), // Format standard DD-MM-YYYY
       data_fim: dataFim.split("-").reverse().join("-"),
@@ -344,7 +349,8 @@ export default function TriagemPage() {
       itens_pagina: itensPagina,
       apenas_monitorados: apenasMonitorados,
       processo_selecionado_id: processoSelecionadoId === "Nenhum" ? null : parseInt(processoSelecionadoId),
-      selected_process_ids: apenasMonitorados ? selectedMonitorProcessIds : []
+      selected_process_ids: apenasMonitorados ? selectedMonitorProcessIds : [],
+      monitored_cnjs: apenasMonitorados ? monitoredCnjs : []
     };
 
     try {
@@ -357,11 +363,17 @@ export default function TriagemPage() {
       if (res.ok) {
         const data = await res.json();
         setSearchStatus(data.status);
-        const sanitized = (data.results || []).map((r: Publicacao) => ({
+        let sanitized = (data.results || []).map((r: Publicacao) => ({
           ...r,
           conteudo_resumo: cleanPublicationText(r.conteudo_resumo),
           conteudo_completo: cleanPublicationText(r.conteudo_completo)
         }));
+
+        if (apenasMonitorados && monitoredCnjs.length > 0) {
+          const monitoredSet = new Set(monitoredCnjs);
+          sanitized = sanitized.filter((r: Publicacao) => monitoredSet.has(r.processo_cnj.replace(/\D/g, "")));
+        }
+
         setResults(sanitized);
       } else {
         setSearchStatus("Erro ao realizar busca.");

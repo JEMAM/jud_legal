@@ -37,43 +37,103 @@ export async function POST(req: NextRequest) {
     const estado_oab = params.estado_oab || "";
     const pagina = params.pagina || 1;
     const itens_pagina = params.itens_pagina || 50;
+    const apenas_monitorados = Boolean(params.apenas_monitorados);
+    const monitored_cnjs: string[] = Array.isArray(params.monitored_cnjs) ? params.monitored_cnjs : [];
 
-    const baseParams: Record<string, any> = {
-      pagina: pagina,
-      itensPorPagina: itens_pagina,
-      dataInicial: data_ini,
-      dataFinal: data_fim,
-    };
+    // Conjunto de dígitos dos processos monitorados
+    const monitoredSet = new Set(monitored_cnjs.map(c => String(c).replace(/\D/g, "")).filter(Boolean));
 
-    if (num_proc) {
-      baseParams.numeroProcesso = num_proc.replace(/\D/g, "");
-    } else {
-      if (tribunal && tribunal !== "TODOS") baseParams.siglaTribunal = tribunal.trim().toUpperCase();
-      if (nome) baseParams.nomeParte = nome.trim();
-      if (num_oab) baseParams.oab = num_oab.replace(/\D/g, "");
-      if (estado_oab) baseParams.ufOab = estado_oab.trim().toUpperCase();
+    // Se "Apenas Monitorados" estiver ativo e a lista de processos monitorados estiver vazia
+    if (apenas_monitorados && monitoredSet.size === 0 && !num_proc) {
+      return NextResponse.json({
+        status: "⚠️ Nenhum processo monitorado selecionado no filtro.",
+        results: [],
+      });
     }
 
-    const queryString = new URLSearchParams(baseParams).toString();
-    const targetUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao?${queryString}`;
+    let rawItems: any[] = [];
 
-    const res = await fetch(targetUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-      },
-      next: { revalidate: 0 },
-    });
+    // Caso 1: Busca por OAB, Nome, Tribunal ou Número de Processo específico
+    if (num_proc || num_oab || nome || tribunal !== "TODOS") {
+      const baseParams: Record<string, any> = {
+        pagina: pagina,
+        itensPorPagina: itens_pagina,
+        dataInicial: data_ini,
+        dataFinal: data_fim,
+      };
 
-    if (!res.ok) {
-      return NextResponse.json({ status: `⚠️ Erro na requisição PJe (Status ${res.status})`, results: [] });
+      if (num_proc) {
+        baseParams.numeroProcesso = num_proc.replace(/\D/g, "");
+      } else {
+        if (tribunal && tribunal !== "TODOS") baseParams.siglaTribunal = tribunal.trim().toUpperCase();
+        if (nome) baseParams.nomeParte = nome.trim();
+        if (num_oab) baseParams.oab = num_oab.replace(/\D/g, "");
+        if (estado_oab) baseParams.ufOab = estado_oab.trim().toUpperCase();
+      }
+
+      const queryString = new URLSearchParams(baseParams).toString();
+      const targetUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao?${queryString}`;
+
+      const res = await fetch(targetUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/plain, */*",
+          "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        },
+        next: { revalidate: 0 },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        rawItems = data.items || [];
+      }
+    } else if (apenas_monitorados && monitoredSet.size > 0) {
+      // Caso 2: "Apenas Monitorados" sem OAB/Nome preenchidos -> busca cada processo monitorado individualmente
+      const promises = Array.from(monitoredSet).map(async (cnj) => {
+        const baseParams = {
+          pagina: pagina,
+          itensPorPagina: itens_pagina,
+          dataInicial: data_ini,
+          dataFinal: data_fim,
+          numeroProcesso: cnj,
+        };
+        const queryString = new URLSearchParams(baseParams as any).toString();
+        const targetUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao?${queryString}`;
+
+        try {
+          const res = await fetch(targetUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              "Accept": "application/json, text/plain, */*",
+            },
+            next: { revalidate: 0 },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            return data.items || [];
+          }
+        } catch (e) {
+          console.error("Erro ao buscar processo monitorado:", cnj, e);
+        }
+        return [];
+      });
+
+      const itemLists = await Promise.all(promises);
+      rawItems = itemLists.flat();
     }
 
-    const data = await res.json();
-    const rawItems = data.items || [];
+    // Filtrar resultados para conter APENAS os processos monitorados quando o filtro estiver ativo
+    let filteredItems = rawItems;
+    if (apenas_monitorados && monitoredSet.size > 0) {
+      filteredItems = rawItems.filter((item: any) => {
+        const textoLimpo = cleanHtml(item.texto || "");
+        const nProc = item.numeroprocessocommascara || item.numero_processo || item.numeroProcesso || item.numero || extractCNJ(textoLimpo);
+        const cnjDigits = String(nProc).replace(/\D/g, "");
+        return monitoredSet.has(cnjDigits);
+      });
+    }
 
-    const rows = rawItems.map((item: any, idx: number) => {
+    const rows = filteredItems.map((item: any, idx: number) => {
       const textoLimpo = cleanHtml(item.texto || "");
       const nProc = item.numeroprocessocommascara || item.numero_processo || item.numeroProcesso || item.numero || extractCNJ(textoLimpo);
       const sigla = item.siglaTribunal || item.sigla || "PJe";
@@ -96,8 +156,12 @@ export async function POST(req: NextRequest) {
       };
     });
 
+    const statusMsg = apenas_monitorados
+      ? `✅ Sucesso! ${rows.length} registros localizados para os processos monitorados.`
+      : `✅ Sucesso! ${rows.length} registros localizados.`;
+
     return NextResponse.json({
-      status: `✅ Sucesso! ${rows.length} registros localizados.`,
+      status: statusMsg,
       results: rows,
     });
   } catch (error: any) {
