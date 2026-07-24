@@ -64,8 +64,12 @@ export async function POST(req: NextRequest) {
 
     let rawItems: any[] = [];
 
-    // Caso 1: Busca por OAB, Nome, Tribunal ou Número de Processo específico
-    if (num_proc || num_oab || nome || tribunal !== "TODOS") {
+    // Se "Apenas Monitorados" estiver ativo e NÃO tivermos um num_proc, num_oab ou nome específico,
+    // devemos obrigatoriamente buscar cada processo monitorado individualmente.
+    const shouldSearchPerMonitoredProcess = apenas_monitorados && !num_proc && !num_oab && !nome;
+
+    if (!shouldSearchPerMonitoredProcess && (num_proc || num_oab || nome || tribunal !== "TODOS")) {
+      // Caso 1: Busca ampla por OAB, Nome, ou Número de Processo específico
       const baseParams: Record<string, any> = {
         pagina: pagina,
         itensPorPagina: itens_pagina,
@@ -105,14 +109,15 @@ export async function POST(req: NextRequest) {
         const data = await res.json();
         rawItems = data.items || [];
       }
-    } else if (apenas_monitorados && monitoredSet.size > 0) {
-      // Caso 2: "Apenas Monitorados" sem OAB/Nome preenchidos -> busca cada processo monitorado individualmente
+    } else if (monitoredSet.size > 0) {
+      // Caso 2: Busca individualizada por cada processo monitorado
       const promises = Array.from(monitoredSet).map(async (cnj) => {
         const baseParams: Record<string, any> = {
           pagina: pagina,
           itensPorPagina: itens_pagina,
           numeroProcesso: cnj,
         };
+        if (tribunal && tribunal !== "TODOS") baseParams.siglaTribunal = tribunal.trim().toUpperCase();
         if (data_ini) {
           baseParams.dataDisponibilizacaoInicio = data_ini;
           baseParams.dataInicial = data_ini;
