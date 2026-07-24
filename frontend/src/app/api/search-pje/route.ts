@@ -65,11 +65,11 @@ export async function POST(req: NextRequest) {
     let rawItems: any[] = [];
 
     // Se "Apenas Monitorados" estiver ativo e NÃO tivermos um num_proc, num_oab ou nome específico,
-    // devemos obrigatoriamente buscar cada processo monitorado individualmente.
+    // devemos buscar cada processo monitorado individualmente.
     const shouldSearchPerMonitoredProcess = apenas_monitorados && !num_proc && !num_oab && !nome;
 
-    if (!shouldSearchPerMonitoredProcess && (num_proc || num_oab || nome || tribunal !== "TODOS")) {
-      // Caso 1: Busca ampla por OAB, Nome, ou Número de Processo específico
+    if (!shouldSearchPerMonitoredProcess) {
+      // Caso 1: Busca na ComunicaAPI (geral ou filtrada por OAB/UF/Nome/Processo/Datas/Tribunal)
       const baseParams: Record<string, any> = {
         pagina: pagina,
         itensPorPagina: itens_pagina,
