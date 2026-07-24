@@ -1327,27 +1327,6 @@ def update_process(proc_id: int, req: ProcessUpdateSchema):
     finally:
         conn.close()
 
-@app.get("/api/debug-pje")
-def debug_pje():
-    import requests
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/plain, */*"
-    }
-    params = {
-        "dataInicial": "19-07-2026",
-        "dataFinal": "24-07-2026",
-        "siglaTribunal": "TJSP",
-        "ufOab": "SP",
-        "pagina": 1,
-        "itensPorPagina": 10
-    }
-    try:
-        r = requests.get("https://comunicaapi.pje.jus.br/api/v1/comunicacao", params=params, headers=headers, timeout=15)
-        return {"status_code": r.status_code, "text_snippet": r.text[:500], "headers": dict(r.headers)}
-    except Exception as e:
-        return {"error": str(e)}
-
 @app.post("/api/search-pje")
 async def search_pje(params: PjeSearchSchema):
     # Adapta os parâmetros de entrada
