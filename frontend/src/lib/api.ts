@@ -9,10 +9,10 @@ export const getApiUrl = (endpoint: string = "") => {
         baseUrl = `http://${host}:8000`;
       } else {
         // Em produção na Vercel sem variável configurada
-        baseUrl = "http://localhost:8000";
+        baseUrl = "https://jud-legal.onrender.com";
       }
     } else {
-      baseUrl = "http://localhost:8000";
+      baseUrl = "https://jud-legal.onrender.com";
     }
   }
 
