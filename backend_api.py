@@ -459,16 +459,65 @@ class HTMLStripper(HTMLParser):
 
 import html
 
+def desescapar_entidades_html(texto: str) -> str:
+    if not texto:
+        return ""
+    t = html.unescape(texto)
+    t = html.unescape(t)
+    
+    replacements = [
+        (re.compile(r'&nbsp;?', re.IGNORECASE), ' '),
+        (re.compile(r'&ordm;?', re.IGNORECASE), 'º'),
+        (re.compile(r'&ordf;?', re.IGNORECASE), 'ª'),
+        (re.compile(r'&deg;?', re.IGNORECASE), '°'),
+
+        (re.compile(r'&Aacute;?'), 'Á'),
+        (re.compile(r'&aacute;?'), 'á'),
+        (re.compile(r'&Eacute;?'), 'É'),
+        (re.compile(r'&eacute;?'), 'é'),
+        (re.compile(r'&Iacute;?'), 'Í'),
+        (re.compile(r'&iacute;?'), 'í'),
+        (re.compile(r'&Oacute;?'), 'Ó'),
+        (re.compile(r'&oacute;?'), 'ó'),
+        (re.compile(r'&Uacute;?'), 'Ú'),
+        (re.compile(r'&uacute;?'), 'ú'),
+
+        (re.compile(r'&Atilde;?'), 'Ã'),
+        (re.compile(r'&atilde;?'), 'ã'),
+        (re.compile(r'&Otilde;?'), 'Õ'),
+        (re.compile(r'&otilde;?'), 'õ'),
+
+        (re.compile(r'&Acirc;?'), 'Â'),
+        (re.compile(r'&acirc;?'), 'â'),
+        (re.compile(r'&Ecirc;?'), 'Ê'),
+        (re.compile(r'&ecirc;?'), 'ê'),
+        (re.compile(r'&Ocirc;?'), 'Ô'),
+        (re.compile(r'&ocirc;?'), 'ô'),
+
+        (re.compile(r'&Ccedil;?'), 'Ç'),
+        (re.compile(r'&ccedil;?'), 'ç'),
+
+        (re.compile(r'&Agrave;?'), 'À'),
+        (re.compile(r'&agrave;?'), 'à'),
+
+        (re.compile(r'&quot;?', re.IGNORECASE), '"'),
+        (re.compile(r'&apos;?', re.IGNORECASE), "'"),
+        (re.compile(r'&lt;?', re.IGNORECASE), '<'),
+        (re.compile(r'&gt;?', re.IGNORECASE), '>'),
+    ]
+    for pattern, repl in replacements:
+        t = pattern.sub(repl, t)
+        
+    return t
+
 def limpar_html(html_text: Optional[str]) -> str:
     if not html_text:
         return "Sem conteúdo cadastrado."
     if "Processo sigiloso" in html_text:
         return "⚠️ CONTEÚDO BLOQUEADO: Processo corre em Segredo de Justiça."
     try:
-        # 1. Unescape HTML entities (e.g. &lt; to <, &amp; to &)
-        # Fazemos duas vezes para garantir caso venha double-escaped
-        text = html.unescape(html_text)
-        text = html.unescape(text)
+        # 1. Unescape HTML entities (handling entities missing trailing semicolons)
+        text = desescapar_entidades_html(html_text)
         
         # 2. Substituir tags de bloco comuns e quebras de linha por newlines reais
         text = re.sub(r'<(p|br|br\s*/|div|/p|/div|tr|/tr)>', '\n', text, flags=re.IGNORECASE)
@@ -478,13 +527,12 @@ def limpar_html(html_text: Optional[str]) -> str:
         stripper.feed(text)
         stripped_text = stripper.get_data()
         
-        # 4. Tratar espaços em branco e substituir non-breaking spaces
+        # 4. Tratar espaços em branco e desescapar novamente caso haja remanescentes
         lines = []
         for line in stripped_text.split('\n'):
             line_cleaned = line.strip()
-            # Substitui caracteres de espaço inquebrável (NBSP) por espaço normal
             line_cleaned = line_cleaned.replace('\xa0', ' ').replace('&nbsp;', ' ')
-            # Limpa múltiplos espaços internos
+            line_cleaned = desescapar_entidades_html(line_cleaned)
             line_cleaned = re.sub(r'\s+', ' ', line_cleaned)
             if line_cleaned:
                 lines.append(line_cleaned)
@@ -493,7 +541,7 @@ def limpar_html(html_text: Optional[str]) -> str:
     except Exception as e:
         logger.error(f"Erro ao limpar HTML: {e}")
         try:
-            return html.unescape(html_text) if html_text else ""
+            return desescapar_entidades_html(html_text) if html_text else ""
         except:
             return html_text or ""
 

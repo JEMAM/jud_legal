@@ -361,15 +361,81 @@ class HTMLStripper(HTMLParser):
     def get_data(self):
         return "".join(self.fed)
 
+import html
+
+def desescapar_entidades_html(texto: str) -> str:
+    if not texto:
+        return ""
+    t = html.unescape(texto)
+    t = html.unescape(t)
+    
+    replacements = [
+        (re.compile(r'&nbsp;?', re.IGNORECASE), ' '),
+        (re.compile(r'&ordm;?', re.IGNORECASE), 'º'),
+        (re.compile(r'&ordf;?', re.IGNORECASE), 'ª'),
+        (re.compile(r'&deg;?', re.IGNORECASE), '°'),
+
+        (re.compile(r'&Aacute;?'), 'Á'),
+        (re.compile(r'&aacute;?'), 'á'),
+        (re.compile(r'&Eacute;?'), 'É'),
+        (re.compile(r'&eacute;?'), 'é'),
+        (re.compile(r'&Iacute;?'), 'Í'),
+        (re.compile(r'&iacute;?'), 'í'),
+        (re.compile(r'&Oacute;?'), 'Ó'),
+        (re.compile(r'&oacute;?'), 'ó'),
+        (re.compile(r'&Uacute;?'), 'Ú'),
+        (re.compile(r'&uacute;?'), 'ú'),
+
+        (re.compile(r'&Atilde;?'), 'Ã'),
+        (re.compile(r'&atilde;?'), 'ã'),
+        (re.compile(r'&Otilde;?'), 'Õ'),
+        (re.compile(r'&otilde;?'), 'õ'),
+
+        (re.compile(r'&Acirc;?'), 'Â'),
+        (re.compile(r'&acirc;?'), 'â'),
+        (re.compile(r'&Ecirc;?'), 'Ê'),
+        (re.compile(r'&ecirc;?'), 'ê'),
+        (re.compile(r'&Ocirc;?'), 'Ô'),
+        (re.compile(r'&ocirc;?'), 'ô'),
+
+        (re.compile(r'&Ccedil;?'), 'Ç'),
+        (re.compile(r'&ccedil;?'), 'ç'),
+
+        (re.compile(r'&Agrave;?'), 'À'),
+        (re.compile(r'&agrave;?'), 'à'),
+
+        (re.compile(r'&quot;?', re.IGNORECASE), '"'),
+        (re.compile(r'&apos;?', re.IGNORECASE), "'"),
+        (re.compile(r'&lt;?', re.IGNORECASE), '<'),
+        (re.compile(r'&gt;?', re.IGNORECASE), '>'),
+    ]
+    for pattern, repl in replacements:
+        t = pattern.sub(repl, t)
+        
+    return t
+
 def limpar_html(html_text: Optional[str]) -> str:
     if not html_text:
         return "Sem conteúdo cadastrado."
     if "Processo sigiloso" in html_text:
         return "⚠️ CONTEÚDO BLOQUEADO: Processo corre em Segredo de Justiça."
     try:
+        text = desescapar_entidades_html(html_text)
+        text = re.sub(r'<(p|br|br\s*/|div|/p|/div|tr|/tr)>', '\n', text, flags=re.IGNORECASE)
         stripper = HTMLStripper()
-        stripper.feed(html_text)
-        return " ".join(stripper.get_data().split())
+        stripper.feed(text)
+        stripped_text = stripper.get_data()
+        
+        lines = []
+        for line in stripped_text.split('\n'):
+            line_cleaned = line.strip()
+            line_cleaned = line_cleaned.replace('\xa0', ' ').replace('&nbsp;', ' ')
+            line_cleaned = desescapar_entidades_html(line_cleaned)
+            line_cleaned = re.sub(r'\s+', ' ', line_cleaned)
+            if line_cleaned:
+                lines.append(line_cleaned)
+                
+        return '\n'.join(lines)
     except Exception:
         return html_text or ""
 

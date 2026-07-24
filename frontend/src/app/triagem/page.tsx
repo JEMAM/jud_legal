@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { getApiUrl } from "@/lib/api";
+import { cleanPublicationText } from "@/lib/htmlUtils";
 
 interface ProcessoDropdown {
   id: number;
@@ -163,7 +164,13 @@ export default function TriagemPage() {
     const savedResults = localStorage.getItem("triagem_results");
     if (savedResults) {
       try {
-        setResults(JSON.parse(savedResults));
+        const parsed = JSON.parse(savedResults);
+        const sanitized = (parsed || []).map((r: Publicacao) => ({
+          ...r,
+          conteudo_resumo: cleanPublicationText(r.conteudo_resumo),
+          conteudo_completo: cleanPublicationText(r.conteudo_completo)
+        }));
+        setResults(sanitized);
       } catch (e) {
         console.error("Erro ao ler triagem_results:", e);
       }
@@ -350,7 +357,12 @@ export default function TriagemPage() {
       if (res.ok) {
         const data = await res.json();
         setSearchStatus(data.status);
-        setResults(data.results);
+        const sanitized = (data.results || []).map((r: Publicacao) => ({
+          ...r,
+          conteudo_resumo: cleanPublicationText(r.conteudo_resumo),
+          conteudo_completo: cleanPublicationText(r.conteudo_completo)
+        }));
+        setResults(sanitized);
       } else {
         setSearchStatus("Erro ao realizar busca.");
       }
@@ -388,7 +400,7 @@ export default function TriagemPage() {
       const isSecured = r.conteudo_completo?.includes("Processo sigiloso");
       const cleanText = isSecured
         ? "⚠️ CONTEÚDO BLOQUEADO: Processo corre em Segredo de Justiça."
-        : r.conteudo_completo || r.conteudo_resumo;
+        : cleanPublicationText(r.conteudo_completo || r.conteudo_resumo);
 
       return `=== PROCESSO: ${r.processo_cnj} (Linha ${r.linha}) ===\n` +
         `Tribunal: ${r.tribunal} | Data Disp: ${r.data_disp}\n` +
