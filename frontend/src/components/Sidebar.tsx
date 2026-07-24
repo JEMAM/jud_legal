@@ -132,34 +132,35 @@ export default function Sidebar() {
             )}
           </Link>
 
-          {/* Toggle Seta Button (Header) */}
-          <div className="flex items-center gap-1">
+          {/* Toggle Seta Button (Desktop Header) */}
+          <div className="hidden md:flex items-center gap-1">
             <button
               onClick={toggleCollapse}
               className="p-1.5 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-750 transition-all flex items-center justify-center"
               title={collapsedMode ? "Abrir/Expandir Módulos" : "Recolher/Fechar Módulos"}
             >
               {collapsedMode ? (
-                <ChevronRight className="h-5 w-5 text-indigo-400 animate-pulse" />
+                <ChevronRight className="h-5 w-5 text-indigo-400" />
               ) : (
                 <ChevronLeft className="h-5 w-5 text-slate-300" />
               )}
             </button>
-
-            <button 
-              onClick={() => setMobileOpen(false)}
-              className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
-              aria-label="Fechar menu"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
+
+          {/* Close button for Mobile Drawer */}
+          <button 
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800"
+            aria-label="Fechar menu"
+          >
+            <X className="h-6 w-6" />
+          </button>
         </div>
 
         {/* Navigation Links */}
         <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
           {!collapsedMode && (
-            <p className="px-3 text-xxs font-semibold text-slate-500 uppercase tracking-widest mb-3">Módulos</p>
+            <p className="px-3 text-xxs font-semibold text-slate-500 uppercase tracking-widest mb-3">Módulos do Sistema</p>
           )}
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -282,7 +283,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Header Bar */}
+      {/* Mobile Header Bar (Only visible on screens < md) */}
       <div className="md:hidden w-full bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30 flex-shrink-0">
         <Link href="/clients" className="flex items-center gap-2.5">
           <div className="p-2 bg-indigo-600 rounded-lg text-white">
@@ -295,34 +296,15 @@ export default function Sidebar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2">
-          {/* Toggle Seta Button on Mobile Bar */}
-          <button
-            onClick={toggleCollapse}
-            className="p-2 text-indigo-400 hover:text-white bg-slate-800 hover:bg-slate-750 rounded-xl border border-slate-700 transition-colors flex items-center gap-1 text-xs font-bold"
-            title={isCollapsed ? "Expandir Menu" : "Recolher Menu"}
-          >
-            {isCollapsed ? (
-              <>
-                <ChevronRight className="h-5 w-5 text-indigo-400 animate-pulse" />
-                <span className="text-xxs uppercase tracking-wider text-indigo-300">Abrir</span>
-              </>
-            ) : (
-              <>
-                <ChevronLeft className="h-5 w-5" />
-                <span className="text-xxs uppercase tracking-wider text-slate-400">Fechar</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 rounded-xl border border-slate-700 transition-colors"
-            aria-label="Abrir Menu Completo"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
+          aria-label="Abrir Módulos"
+        >
+          <Menu className="h-4.5 w-4.5" />
+          <span>Módulos</span>
+        </button>
       </div>
 
       {/* Mobile Drawer Overlay */}
@@ -338,9 +320,9 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Desktop / Responsive Sidebar */}
+      {/* Desktop Sidebar (Only visible on screens >= md) */}
       <aside 
-        className={`bg-slate-900 border-r border-slate-800 text-slate-200 flex flex-col justify-between h-screen sticky top-0 flex-shrink-0 transition-all duration-300 ${
+        className={`hidden md:flex bg-slate-900 border-r border-slate-800 text-slate-200 flex-col justify-between h-screen sticky top-0 flex-shrink-0 transition-all duration-300 ${
           isCollapsed ? "w-20" : "w-72 lg:w-80"
         }`}
       >
