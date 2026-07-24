@@ -2,6 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const preferredRegion = "gru1";
 
+function cleanHtml(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractCNJ(text: string): string {
+  const match = text.match(/\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/);
+  return match ? match[0] : "CNJ Não Identificado";
+}
+
+function formatDate(raw: any): string {
+  if (!raw || raw === "-") return "-";
+  const str = String(raw).trim();
+  const datePart = str.split(" ")[0].split("T")[0];
+  const parts = datePart.split("-");
+  if (parts.length === 3) {
+    if (parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return datePart;
+  }
+  return str;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const params = await req.json();
@@ -49,11 +76,34 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await res.json();
-    const items = data.items || [];
+    const rawItems = data.items || [];
+
+    const rows = rawItems.map((item: any, idx: number) => {
+      const textoLimpo = cleanHtml(item.texto || "");
+      const nProc = item.numeroprocessocommascara || item.numero_processo || item.numeroProcesso || item.numero || extractCNJ(textoLimpo);
+      const sigla = item.siglaTribunal || item.sigla || "PJe";
+      const tipo = item.tipoComunicacao || "Outros";
+      const dDisp = formatDate(item.data_disponibilizacao || item.datadisponibilizacao || item.dataDisponibilizacao);
+
+      const destLista = item.destinatarios || item.destinatarioadvogados || [];
+      const destNomes = Array.isArray(destLista) ? destLista.map((d: any) => typeof d === "object" ? d.nome : d).filter(Boolean) : [];
+      const destinatariosStr = destNomes.length > 0 ? destNomes.join(", ") : "Não informado";
+
+      return {
+        linha: idx + 1,
+        processo_cnj: nProc,
+        tribunal: sigla,
+        tipo: tipo,
+        data_disp: dDisp,
+        destinatarios: destinatariosStr,
+        conteudo_resumo: textoLimpo.substring(0, 100) + "...",
+        conteudo_completo: textoLimpo,
+      };
+    });
 
     return NextResponse.json({
-      status: `✅ Sucesso! ${items.length} registros localizados.`,
-      results: items,
+      status: `✅ Sucesso! ${rows.length} registros localizados.`,
+      results: rows,
     });
   } catch (error: any) {
     return NextResponse.json({ status: `❌ Erro ao consultar PJe: ${error.message}`, results: [] }, { status: 500 });
