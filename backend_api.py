@@ -888,7 +888,7 @@ async def executar_pesquisa_pje(params: Dict[str, Any]) -> Tuple[str, List[Dict[
             if estado_oab and estado_oab.strip(): base_params["ufOab"] = estado_oab.upper().strip()
 
         for ini, fim in chunks:
-            p = {**base_params, "dataInicial": ini, "dataFinal": fim}
+            p = {**base_params, "dataDisponibilizacaoInicio": ini, "dataDisponibilizacaoFim": fim, "dataInicial": ini, "dataFinal": fim}
             tarefas.append(buscar_com_semaforo(p))
 
     resultados_fatiados = await asyncio.gather(*tarefas)

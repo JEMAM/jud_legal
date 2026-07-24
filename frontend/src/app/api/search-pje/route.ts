@@ -24,12 +24,23 @@ function formatDate(raw: any): string {
   return str;
 }
 
+function toYYYYMMDD(dateStr: string): string {
+  if (!dateStr) return "";
+  const cleaned = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) return cleaned;
+  const parts = cleaned.split(/[-/]/);
+  if (parts.length === 3 && parts[2].length === 4) {
+    return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+  }
+  return cleaned;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const params = await req.json();
 
-    const data_ini = params.data_ini;
-    const data_fim = params.data_fim;
+    const data_ini = toYYYYMMDD(params.data_ini || "");
+    const data_fim = toYYYYMMDD(params.data_fim || "");
     const num_proc = params.num_proc || "";
     const tribunal = params.tribunal || "TODOS";
     const nome = params.nome_part || "";
@@ -58,9 +69,16 @@ export async function POST(req: NextRequest) {
       const baseParams: Record<string, any> = {
         pagina: pagina,
         itensPorPagina: itens_pagina,
-        dataInicial: data_ini,
-        dataFinal: data_fim,
       };
+
+      if (data_ini) {
+        baseParams.dataDisponibilizacaoInicio = data_ini;
+        baseParams.dataInicial = data_ini;
+      }
+      if (data_fim) {
+        baseParams.dataDisponibilizacaoFim = data_fim;
+        baseParams.dataFinal = data_fim;
+      }
 
       if (num_proc) {
         baseParams.numeroProcesso = num_proc.replace(/\D/g, "");
@@ -90,13 +108,20 @@ export async function POST(req: NextRequest) {
     } else if (apenas_monitorados && monitoredSet.size > 0) {
       // Caso 2: "Apenas Monitorados" sem OAB/Nome preenchidos -> busca cada processo monitorado individualmente
       const promises = Array.from(monitoredSet).map(async (cnj) => {
-        const baseParams = {
+        const baseParams: Record<string, any> = {
           pagina: pagina,
           itensPorPagina: itens_pagina,
-          dataInicial: data_ini,
-          dataFinal: data_fim,
           numeroProcesso: cnj,
         };
+        if (data_ini) {
+          baseParams.dataDisponibilizacaoInicio = data_ini;
+          baseParams.dataInicial = data_ini;
+        }
+        if (data_fim) {
+          baseParams.dataDisponibilizacaoFim = data_fim;
+          baseParams.dataFinal = data_fim;
+        }
+
         const queryString = new URLSearchParams(baseParams as any).toString();
         const targetUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao?${queryString}`;
 

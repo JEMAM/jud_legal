@@ -338,8 +338,8 @@ export default function TriagemPage() {
     const monitoredCnjs = selectedProcesses.map(p => p.mascara.replace(/\D/g, "")).filter(Boolean);
 
     const payload = {
-      data_ini: dataIni.split("-").reverse().join("-"), // Format standard DD-MM-YYYY
-      data_fim: dataFim.split("-").reverse().join("-"),
+      data_ini: dataIni,
+      data_fim: dataFim,
       num_proc: numProc,
       tribunal,
       nome_part: nomeParte,
