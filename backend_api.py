@@ -693,20 +693,29 @@ def calcular_prazo_processual(data_disponibilizacao: str, prazo_dias: int, prazo
 class DjenApiClient:
     BASE_URL = "https://comunicaapi.pje.jus.br/api/v1/comunicacao"
 
-    def __init__(self, timeout: float = 60.0):
+    def __init__(self, timeout: float = 30.0):
         self.timeout = timeout
 
     async def buscar_publicacoes_slice(self, params: dict) -> List[dict]:
-        async with AsyncClient(timeout=self.timeout) as client:
-            try:
-                response = await client.get(self.BASE_URL, params=params)
-                if response.status_code == 200:
-                    return response.json().get("items", [])
-                else:
-                    logger.error(f"Erro ao consultar bloco: Status {response.status_code}")
-            except Exception as e:
-                logger.error(f"Erro ao consultar bloco: {e}")
-        return []
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        def _fetch():
+            import requests
+            resp = requests.get(self.BASE_URL, params=params, headers=headers, timeout=self.timeout)
+            if resp.status_code == 200:
+                return resp.json().get("items", [])
+            else:
+                logger.error(f"Erro ao consultar bloco: Status {resp.status_code}")
+                return []
+
+        try:
+            return await asyncio.to_thread(_fetch)
+        except Exception as e:
+            logger.error(f"Erro ao consultar bloco: {e}")
+            return []
 
 client_pje = DjenApiClient()
 cache_publicacoes = {}
