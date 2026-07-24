@@ -1398,7 +1398,54 @@ async def search_pje(params: PjeSearchSchema):
 # Dicionário global para monitorar o status das tarefas dos agentes em segundo plano
 agent_tasks = {}
 
-def processar_execucao_agente_prazos(agente_prazos, prompt_prazos: str) -> str:
+def extrair_data_disp_para_prazo(texto_publicacao: str) -> Tuple[Optional[str], List[dict]]:
+    """
+    Analisa os blocos de publicações para identificar especificamente quais contêm termos de prazo/intimação
+    e determina a Data Disp oficial correta para o cálculo do prazo final.
+    """
+    blocos = re.split(r'(?==== PROCESSO:)', texto_publicacao)
+    blocos = [b.strip() for b in blocos if b.strip()]
+    
+    detalhes = []
+    datas_com_prazo = []
+    todas_datas = []
+    
+    keywords_prazo = [
+        "prazo", "dias", "intimação", "intimado", "intimar", "manifestar",
+        "manifeste-se", "contestação", "recurso", "apelação", "agravo",
+        "embargos", "réplica", "recolher", "cumprir", "especificar", "provas",
+        "oficio", "restituição", "informar", "expedição", "pagamento"
+    ]
+    
+    for idx, bloco in enumerate(blocos, 1):
+        match_data = re.search(r"Data Disp:\s*(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4})", bloco, re.IGNORECASE)
+        data_disp_str = match_data.group(1).strip() if match_data else None
+        
+        texto_bloco_lower = bloco.lower()
+        tem_prazo = any(kw in texto_bloco_lower for kw in keywords_prazo)
+        
+        dt_val = converter_data_str(data_disp_str) if data_disp_str else None
+        
+        info = {
+            "bloco": idx,
+            "data_disp_raw": data_disp_str,
+            "data_dt": dt_val,
+            "tem_prazo": tem_prazo
+        }
+        detalhes.append(info)
+        
+        if dt_val:
+            todas_datas.append(dt_val)
+            if tem_prazo:
+                datas_com_prazo.append(dt_val)
+                
+    # A melhor data é a mais recente das que contêm termos de prazo (ou a mais recente geral como fallback)
+    melhor_dt = max(datas_com_prazo) if datas_com_prazo else (max(todas_datas) if todas_datas else None)
+    melhor_data_str = melhor_dt.strftime("%d-%m-%Y") if melhor_dt else None
+    
+    return melhor_data_str, detalhes
+
+def processar_execucao_agente_prazos(agente_prazos, prompt_prazos: str, melhor_data_disp: Optional[str] = None) -> str:
     conteudo = ""
     try:
         res = agente_prazos.run(prompt_prazos)
@@ -1424,7 +1471,7 @@ def processar_execucao_agente_prazos(agente_prazos, prompt_prazos: str) -> str:
             try:
                 import json
                 params = json.loads(raw_json)
-                d_disp = params.get("data_disponibilizacao") or params.get("data")
+                d_disp = melhor_data_disp or params.get("data_disponibilizacao") or params.get("data")
                 p_dias = int(params.get("prazo_dias") or params.get("dias") or 15)
                 p_dilacao = int(params.get("prazo_dilacao_edital") or 0)
                 res_calc = calcular_prazo_processual(d_disp, p_dias, p_dilacao)
@@ -1437,11 +1484,14 @@ def processar_execucao_agente_prazos(agente_prazos, prompt_prazos: str) -> str:
 
     # Se mesmo assim não houver a string Data Limite Estimada, realiza o cálculo de segurança em python
     if "**Data Limite Estimada:**" not in conteudo:
-        datas_found = re.findall(r"(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})", prompt_prazos)
-        dt_objs = [converter_data_str(d) for d in datas_found if converter_data_str(d)]
-        if dt_objs:
-            d_max = max(dt_objs).strftime("%d-%m-%Y")
-            res_calc_sec = calcular_prazo_processual(d_max, 15, 0)
+        d_ref = melhor_data_disp
+        if not d_ref:
+            datas_found = re.findall(r"(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})", prompt_prazos)
+            dt_objs = [converter_data_str(d) for d in datas_found if converter_data_str(d)]
+            if dt_objs:
+                d_ref = max(dt_objs).strftime("%d-%m-%Y")
+        if d_ref:
+            res_calc_sec = calcular_prazo_processual(d_ref, 15, 0)
             conteudo += f"\n\n---\n{res_calc_sec}"
 
     return conteudo
@@ -1465,30 +1515,29 @@ def executar_agentes_background(task_id: str, req: RunAgentsSchema):
         
         agent_tasks[task_id]["progress"] = 45.0
         
-        # Extrai a última data de disponibilização entre todas as publicações apresentadas
-        datas_disp = re.findall(r"Data Disp:\s*(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})", req.texto_publicacao)
-        instrucao_ultima_data = ""
-        if datas_disp:
-            dt_objects = [converter_data_str(d) for d in datas_disp if converter_data_str(d)]
-            if dt_objects:
-                ultima_data_dt = max(dt_objects)
-                ultima_data_str = ultima_data_dt.strftime("%d-%m-%Y")
-                instrucao_ultima_data = f"\n\n📌 ATENÇÃO CRUCIAL (REGRA DA ÚLTIMA PUBLICAÇÃO): Foram identificadas múltiplas publicações/datas para o processo. A ÚLTIMA DATA DE DISPONIBILIZAÇÃO (a mais recente) é {ultima_data_str}. Você DEVE obrigatoriamente utilizar {ultima_data_str} como a data de disponibilização oficial (D0) para calcular o prazo final do processo."
+        # Extrai a melhor data de disponibilização focando nas publicações com termos de prazo/intimação
+        melhor_data_disp, detalhes_pub = extrair_data_disp_para_prazo(req.texto_publicacao)
+        instrucao_prazo_data = ""
+        if melhor_data_disp:
+            instrucao_prazo_data = (
+                f"\n\n📌 REGRA OBRIGATÓRIA DA DATA DE DISPONIBILIZAÇÃO:\n"
+                f"Após análise minuciosa das publicações e verificação da ocorrência de termos de intimação/prazo, a DATA DISP oficial mais recente associada a intimações/determinações de prazo é **{melhor_data_disp}**.\n"
+                f"Você DEVE obrigatoriamente utilizar a data **{melhor_data_disp}** como a data de disponibilização oficial (D0) para o cálculo do prazo final do processo."
+            )
 
         prompt_prazos = (
             f"Você recebeu uma análise conjunta de uma ou mais publicações de diário oficial.\n"
             f"Sua função é atuar como Controller Jurídico sênior especialista em prazos do CPC/2015.\n"
             f"Analise CADA publicação e, para o processo identificado:\n"
-            f"1. Identifique a data de disponibilização oficial (informada no campo 'Data Disp' no contexto).\n"
-            f"   REGRA OBRIGATÓRIA DA ÚLTIMA DATA: Se houver mais de uma publicação/data no contexto, utilize a ÚLTIMA DATA DE DISPONIBILIZAÇÃO (a data mais recente) como base de contagem para o cálculo do prazo final.{instrucao_ultima_data}\n"
-            f"2. Identifique a natureza da intimação e a quantidade de dias úteis do prazo legal aplicável (por exemplo: 15 dias para contestação, réplica, apelação; 5 dias para embargos de declaração; etc.). Se for citação/intimação por edital, verifique se há dias de dilação (ex: 20 dias).\n"
-            f"3. Se houver prazo legal, utilize obrigatoriamente a ferramenta `calcular_prazo_processual` em uma única chamada fornecendo a última data de disponibilização oficial, o prazo de dias de resposta em `prazo_dias` (ex: 15) e o prazo de edital/dilação em `prazo_dilacao_edital` (ex: 20). NUNCA divida o cálculo chamando a ferramenta para apenas um dos prazos e calculando o outro manualmente no texto. Transcreva e apresente integralmente no seu relatório o passo-a-passo e a tabela de contagem fornecidos pela ferramenta.\n"
-            f"   Se for despacho de mero expediente (como juntada de custas retro ou aguardar audiência designada) sem determinação de prazo peremptório, declare explicitamente que não há prazo ou data limite estimada aplicável.\n"
+            f"1. Identifique a ocorrência da palavra 'prazo' ou determinações de intimação nas publicações e localize a Data Disp correspondente.{instrucao_prazo_data}\n"
+            f"2. Identifique a natureza da intimação e a quantidade de dias úteis do prazo legal aplicável (por exemplo: 15 dias para contestação, réplica, apelação, manifestação; 5 dias para embargos de declaração; etc.). Se for citação/intimação por edital, verifique se há dias de dilação (ex: 20 dias).\n"
+            f"3. Se houver prazo legal, utilize obrigatoriamente a ferramenta `calcular_prazo_processual` em uma única chamada fornecendo a data de disponibilização oficial ({melhor_data_disp or 'informada em Data Disp'}), o prazo de dias de resposta em `prazo_dias` (ex: 15) e o prazo de edital/dilação em `prazo_dilacao_edital` (ex: 20). NUNCA divida o cálculo chamando a ferramenta para apenas um dos prazos e calculando o outro manualmente no texto. Transcreva e apresente integralmente no seu relatório o passo-a-passo e a tabela de contagem fornecidos pela ferramenta.\n"
+            f"   Se for despacho de mero expediente sem determinação de prazo peremptório, declare explicitamente que não há prazo ou data limite estimada aplicável.\n"
             f"4. Determine o nível de criticidade (Baixo, Médio, Alto, Crítico) e sugira ações preventivas.\n\n"
             f"Apresente o resultado em markdown rico com tabelas ou badges visuais claros para cada processo.\n\n"
             f"Contexto:\n{contexto}"
         )
-        res_prazos_texto = processar_execucao_agente_prazos(agente_prazos, prompt_prazos)
+        res_prazos_texto = processar_execucao_agente_prazos(agente_prazos, prompt_prazos, melhor_data_disp)
         
         agent_tasks[task_id]["progress"] = 70.0
         prompt_minutas = (
