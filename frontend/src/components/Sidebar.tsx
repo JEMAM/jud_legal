@@ -65,7 +65,10 @@ export default function Sidebar() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch(getApiUrl("/api/clients"), { signal: AbortSignal.timeout(3000) });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch(getApiUrl("/api/clients"), { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           setBackendStatus("online");
         } else {
@@ -76,7 +79,7 @@ export default function Sidebar() {
       }
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 15000);
+    const interval = setInterval(checkStatus, 20000);
     return () => clearInterval(interval);
   }, []);
 
