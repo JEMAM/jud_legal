@@ -8,10 +8,16 @@ export const getApiUrl = (endpoint: string = "") => {
       if (host === "localhost" || host === "127.0.0.1" || /^192\.168\./.test(host) || /^10\./.test(host) || /^172\./.test(host)) {
         baseUrl = `http://${host}:8000`;
       } else {
-        // Em produção na Vercel sem variável configurada
+        // Em produção na Vercel: a rota de busca PJe roda nativamente na Vercel em SP (IP Brasil)
+        if (endpoint === "/api/search-pje") {
+          return "/api/search-pje";
+        }
         baseUrl = "https://jud-legal.onrender.com";
       }
     } else {
+      if (endpoint === "/api/search-pje") {
+        return "/api/search-pje";
+      }
       baseUrl = "https://jud-legal.onrender.com";
     }
   }
