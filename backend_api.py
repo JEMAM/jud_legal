@@ -1398,6 +1398,54 @@ async def search_pje(params: PjeSearchSchema):
 # Dicionário global para monitorar o status das tarefas dos agentes em segundo plano
 agent_tasks = {}
 
+def processar_execucao_agente_prazos(agente_prazos, prompt_prazos: str) -> str:
+    conteudo = ""
+    try:
+        res = agente_prazos.run(prompt_prazos)
+        conteudo = res.content if hasattr(res, "content") else str(res)
+    except Exception as e:
+        err_msg = str(e)
+        logger.warning(f"Exceção ao executar agente_prazos: {err_msg}")
+        try:
+            import json
+            json_match = re.search(r'\{.*\}', err_msg, re.DOTALL)
+            if json_match:
+                err_json = json.loads(json_match.group(0))
+                conteudo = err_json.get("error", {}).get("failed_generation", "") or err_msg
+            else:
+                conteudo = err_msg
+        except Exception:
+            conteudo = err_msg
+
+    # Se o modelo emitiu a chamada da função como texto XML <function=calcular_prazo_processual>
+    if "<function=calcular_prazo_processual>" in conteudo:
+        def substituir_funcao(match):
+            raw_json = match.group(1).strip()
+            try:
+                import json
+                params = json.loads(raw_json)
+                d_disp = params.get("data_disponibilizacao") or params.get("data")
+                p_dias = int(params.get("prazo_dias") or params.get("dias") or 15)
+                p_dilacao = int(params.get("prazo_dilacao_edital") or 0)
+                res_calc = calcular_prazo_processual(d_disp, p_dias, p_dilacao)
+                return f"\n\n{res_calc}\n\n"
+            except Exception as ex:
+                logger.error(f"Erro no fallback da ferramenta calcular_prazo_processual: {ex}")
+                return ""
+
+        conteudo = re.sub(r'<function=calcular_prazo_processual>(.*?)</function>', substituir_funcao, conteudo, flags=re.DOTALL)
+
+    # Se mesmo assim não houver a string Data Limite Estimada, realiza o cálculo de segurança em python
+    if "**Data Limite Estimada:**" not in conteudo:
+        datas_found = re.findall(r"(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})", prompt_prazos)
+        dt_objs = [converter_data_str(d) for d in datas_found if converter_data_str(d)]
+        if dt_objs:
+            d_max = max(dt_objs).strftime("%d-%m-%Y")
+            res_calc_sec = calcular_prazo_processual(d_max, 15, 0)
+            conteudo += f"\n\n---\n{res_calc_sec}"
+
+    return conteudo
+
 def executar_agentes_background(task_id: str, req: RunAgentsSchema):
     try:
         agent_tasks[task_id]["progress"] = 10.0
@@ -1408,7 +1456,7 @@ def executar_agentes_background(task_id: str, req: RunAgentsSchema):
         
         agent_tasks[task_id]["progress"] = 25.0
         prompt_resumo = (
-            f"Elabore um resumo objective e conciso (máximo de 120 caracteres, uma frase direta) sobre o teor da publicação oficial fornecida.\n"
+            f"Elabore um resumo objetivo e conciso (máximo de 120 caracteres, uma frase direta) sobre o teor da publicação oficial fornecida.\n"
             f"Foque na determinação do juiz e evite saudações ou palavras desnecessárias.\n\n"
             f"Texto:\n{req.texto_publicacao}"
         )
@@ -1416,20 +1464,31 @@ def executar_agentes_background(task_id: str, req: RunAgentsSchema):
         resumo_texto = res_resumo.content.strip().replace('"', '').replace("'", "")
         
         agent_tasks[task_id]["progress"] = 45.0
+        
+        # Extrai a última data de disponibilização entre todas as publicações apresentadas
+        datas_disp = re.findall(r"Data Disp:\s*(\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})", req.texto_publicacao)
+        instrucao_ultima_data = ""
+        if datas_disp:
+            dt_objects = [converter_data_str(d) for d in datas_disp if converter_data_str(d)]
+            if dt_objects:
+                ultima_data_dt = max(dt_objects)
+                ultima_data_str = ultima_data_dt.strftime("%d-%m-%Y")
+                instrucao_ultima_data = f"\n\n📌 ATENÇÃO CRUCIAL (REGRA DA ÚLTIMA PUBLICAÇÃO): Foram identificadas múltiplas publicações/datas para o processo. A ÚLTIMA DATA DE DISPONIBILIZAÇÃO (a mais recente) é {ultima_data_str}. Você DEVE obrigatoriamente utilizar {ultima_data_str} como a data de disponibilização oficial (D0) para calcular o prazo final do processo."
+
         prompt_prazos = (
             f"Você recebeu uma análise conjunta de uma ou mais publicações de diário oficial.\n"
             f"Sua função é atuar como Controller Jurídico sênior especialista em prazos do CPC/2015.\n"
-            f"Analise CADA publicação separadamente e, para cada processo identificado:\n"
+            f"Analise CADA publicação e, para o processo identificado:\n"
             f"1. Identifique a data de disponibilização oficial (informada no campo 'Data Disp' no contexto).\n"
-            f"   IMPORTANTE: Se houver mais de uma publicação fornecida no contexto (de forma conjunta ou para o mesmo processo), você deve determinar e calcular a data limite estimada utilizando como base de contagem a data de disponibilização ('Data Disp') da ÚLTIMA publicação apresentada no contexto (que corresponde à publicação mais recente ou final).\n"
+            f"   REGRA OBRIGATÓRIA DA ÚLTIMA DATA: Se houver mais de uma publicação/data no contexto, utilize a ÚLTIMA DATA DE DISPONIBILIZAÇÃO (a data mais recente) como base de contagem para o cálculo do prazo final.{instrucao_ultima_data}\n"
             f"2. Identifique a natureza da intimação e a quantidade de dias úteis do prazo legal aplicável (por exemplo: 15 dias para contestação, réplica, apelação; 5 dias para embargos de declaração; etc.). Se for citação/intimação por edital, verifique se há dias de dilação (ex: 20 dias).\n"
-            f"3. Se houver prazo legal, utilize obrigatóriamente a ferramenta `calcular_prazo_processual` em uma única chamada fornecendo a data de disponibilização oficial, o prazo de dias de resposta em `prazo_dias` (ex: 15) e o prazo de edital/dilação em `prazo_dilacao_edital` (ex: 20). NUNCA divida o cálculo chamando a ferramenta para apenas um dos prazos e calculando o outro manualmente no texto. Transcreva e apresente integralmente no seu relatório o passo-a-passo e a tabela de contagem fornecidos pela ferramenta.\n"
+            f"3. Se houver prazo legal, utilize obrigatoriamente a ferramenta `calcular_prazo_processual` em uma única chamada fornecendo a última data de disponibilização oficial, o prazo de dias de resposta em `prazo_dias` (ex: 15) e o prazo de edital/dilação em `prazo_dilacao_edital` (ex: 20). NUNCA divida o cálculo chamando a ferramenta para apenas um dos prazos e calculando o outro manualmente no texto. Transcreva e apresente integralmente no seu relatório o passo-a-passo e a tabela de contagem fornecidos pela ferramenta.\n"
             f"   Se for despacho de mero expediente (como juntada de custas retro ou aguardar audiência designada) sem determinação de prazo peremptório, declare explicitamente que não há prazo ou data limite estimada aplicável.\n"
             f"4. Determine o nível de criticidade (Baixo, Médio, Alto, Crítico) e sugira ações preventivas.\n\n"
             f"Apresente o resultado em markdown rico com tabelas ou badges visuais claros para cada processo.\n\n"
             f"Contexto:\n{contexto}"
         )
-        res_prazos = agente_prazos.run(prompt_prazos)
+        res_prazos_texto = processar_execucao_agente_prazos(agente_prazos, prompt_prazos)
         
         agent_tasks[task_id]["progress"] = 70.0
         prompt_minutas = (
@@ -1438,12 +1497,13 @@ def executar_agentes_background(task_id: str, req: RunAgentsSchema):
             f"Contexto:\n{contexto}"
         )
         res_minutas = agente_minutas.run(prompt_minutas)
+        res_minutas_texto = res_minutas.content if hasattr(res_minutas, "content") else str(res_minutas)
         
         agent_tasks[task_id]["progress"] = 85.0
         prompt_agenda = (
             f"Você é um assistente de agenda jurídica encarregado de extrair e sugerir compromissos da agenda baseando-se no teor das publicações e na análise do Controller Jurídico.\n"
             f"Use obrigatoriamente a 'Data Limite Estimada' calculada pelo Controller Jurídico para preencher os compromissos de prazo fatal correspondentes.\n\n"
-            f"Análise de Prazos do Controller Jurídico:\n{res_prazos.content}\n\n"
+            f"Análise de Prazos do Controller Jurídico:\n{res_prazos_texto}\n\n"
             f"Use como descrição principal do evento o resumo gerado pelo Analista: '{resumo_texto}'.\n"
             f"Sua tarefa é analisar as publicações fornecidas abaixo e identificar todas as datas de prazos fatais (use a 'Data Limite Estimada' calculada), audiências ou compromissos citados.\n"
             f"ATENÇÃO: Você deve retornar UNICAMENTE o bloco de código JSON abaixo (delimitado por ```json ... ```). Não escreva NADA fora do bloco JSON. Não adicione saudações, introduções ou explicações de rodapé.\n\n"
@@ -1456,14 +1516,15 @@ def executar_agentes_background(task_id: str, req: RunAgentsSchema):
             f"Contexto:\n{contexto}"
         )
         res_agenda_sugestao = agente_agenda.run(prompt_agenda)
+        res_agenda_texto = res_agenda_sugestao.content if hasattr(res_agenda_sugestao, "content") else str(res_agenda_sugestao)
         
         agent_tasks[task_id]["progress"] = 95.0
-        prazos_lista = extrair_prazos_json(res_agenda_sugestao.content)
+        prazos_lista = extrair_prazos_json(res_agenda_texto)
         
         agent_tasks[task_id]["result"] = {
-            "prazos_markdown": res_prazos.content,
-            "minuta_markdown": res_minutas.content,
-            "agenda_json_raw": res_agenda_sugestao.content,
+            "prazos_markdown": res_prazos_texto,
+            "minuta_markdown": res_minutas_texto,
+            "agenda_json_raw": res_agenda_texto,
             "prazos_detectados": prazos_lista,
             "resumo_teor": resumo_texto
         }
