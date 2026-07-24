@@ -432,7 +432,8 @@ export default function ClientsPage() {
   );
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 animate-fade-in max-w-full overflow-x-hidden">
+
       {/* Title */}
       <div className="flex justify-between items-center border-b border-slate-800 pb-5">
         <div>

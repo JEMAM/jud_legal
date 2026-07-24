@@ -60,12 +60,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#090d16] relative overflow-hidden px-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#090d16] relative overflow-y-auto px-4 py-8">
       {/* Decorative background glows */}
-      <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#fef01e]/5 rounded-full blur-[120px]" />
+      <div className="absolute top-1/4 left-1/4 w-[250px] md:w-[300px] h-[250px] md:h-[300px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[250px] md:w-[350px] h-[250px] md:h-[350px] bg-[#fef01e]/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10 space-y-6">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10 space-y-6 my-auto">
+
         
         {/* Header */}
         <div className="text-center space-y-2">

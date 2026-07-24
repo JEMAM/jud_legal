@@ -11,7 +11,8 @@ export default function GuiaPage() {
   const [activeTab, setActiveTab] = useState<"inicio" | "provedores" | "triagem" | "kanban" | "agenda" | "faq">("inicio");
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+
       {/* Header Banner */}
       <div className="hero-container relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-950 border border-indigo-500/30 p-8 md:p-12 shadow-2xl">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />

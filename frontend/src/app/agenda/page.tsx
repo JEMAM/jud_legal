@@ -450,7 +450,8 @@ export default function AgendaPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in flex flex-col h-screen overflow-hidden">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in flex flex-col min-h-full overflow-y-auto max-w-full">
+
       
       {/* Header Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 gap-4 flex-shrink-0">

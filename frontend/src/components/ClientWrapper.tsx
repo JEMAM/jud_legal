@@ -42,11 +42,12 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   const showSidebar = isAuthenticated && !isLoginPage;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-950">
+    <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-slate-950">
       {showSidebar && <Sidebar />}
-      <main className="flex-1 overflow-y-auto h-screen bg-slate-950 flex flex-col">
+      <main className="flex-1 overflow-y-auto h-full min-h-0 bg-slate-950 flex flex-col w-full min-w-0">
         {children}
       </main>
     </div>
   );
+
 }
