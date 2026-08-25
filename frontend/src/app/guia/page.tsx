@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export default function GuiaPage() {
-  const [activeTab, setActiveTab] = useState<"inicio" | "provedores" | "triagem" | "kanban" | "agenda" | "faq">("inicio");
+  const [activeTab, setActiveTab] = useState<"inicio" | "provedores" | "triagem" | "kanban" | "agenda" | "auditoria" | "faq">("inicio");
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
@@ -25,7 +25,7 @@ export default function GuiaPage() {
             Manual de Uso & Boas Práticas do <span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">LegalMind AI</span>
           </h1>
           <p className="text-slate-300 text-base md:text-lg leading-relaxed font-normal">
-            Bem-vindo à sua suíte de inteligência jurídica. Aprenda a configurar seus agentes de IA, realizar triagem automática de intimações do DJE/PJe, gerenciar prazos no Kanban e otimizar sua agenda.
+            Bem-vindo à sua suíte de inteligência jurídica. Aprenda a configurar seus agentes de IA, realizar triagem automática de intimações do DJE/PJe, gerenciar prazos no Kanban, auditar conformidade com a LGPD/SOC 2/ISO 27001 e otimizar sua agenda.
           </p>
         </div>
       </div>
@@ -38,6 +38,7 @@ export default function GuiaPage() {
           { id: "triagem", label: "Triagem & Diários (PJe)", icon: Search },
           { id: "kanban", label: "Kanban Jurídico", icon: LayoutGrid },
           { id: "agenda", label: "Agenda de Prazos", icon: Calendar },
+          { id: "auditoria", label: "Auditoria & Evidências", icon: ShieldCheck },
           { id: "faq", label: "Segurança & FAQ", icon: HelpCircle },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -334,7 +335,44 @@ export default function GuiaPage() {
           </div>
         )}
 
-        {/* TAB 6: FAQ */}
+        {/* TAB 6: AUDITORIA & EVIDÊNCIAS */}
+        {activeTab === "auditoria" && (
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 space-y-6">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-7 h-7 text-emerald-400" />
+              <div>
+                <h2 className="text-2xl font-bold text-white">Auditoria Automatizada & Dossiê de Evidências</h2>
+                <p className="text-sm text-slate-400">Validação técnica contínua para LGPD, SOC 2 e ISO 27001/27701.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-2">
+                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20">Validador LGPD</span>
+                <p className="text-sm text-slate-300 mt-2">Testa minimização de dados, mascaramento de PII (CPF, e-mail, telefone), proteção de processos em segredo de justiça e política de direito ao esquecimento.</p>
+              </div>
+
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-2">
+                <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-bold rounded-full border border-indigo-500/20">Auditor SOC 2 (Tipo I & II)</span>
+                <p className="text-sm text-slate-300 mt-2">Valida trilha de auditoria (audit trail) estruturada com timestamp UTC, user_id, ip_address, action, controle de acesso RBAC e integridade de processamento.</p>
+              </div>
+
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-2">
+                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-xs font-bold rounded-full border border-purple-500/20">Segurança ISO 27001/27701</span>
+                <p className="text-sm text-slate-300 mt-2">Verifica transporte seguro TLS 1.3/HSTS, arquivos em repouso e realiza testes defensivos de Red Teaming contra injeção de prompts maliciosos.</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
+              <h4 className="font-bold text-white text-base">Assinatura Criptográfica & Dossiês Oficiais:</h4>
+              <p className="text-sm text-slate-400">
+                Cada rodada de auditoria gera automaticamente um arquivo <code>.json</code> normalizado e um relatório executivo <code>.md</code>, ambos assinados com <strong>hash SHA-256</strong> e carimbo de tempo UTC atômico para entrega direta a auditores externos e plataformas de GRC (Vanta, Drata, OneTrust).
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: FAQ */}
         {activeTab === "faq" && (
           <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 space-y-6">
             <div className="flex items-center gap-3">

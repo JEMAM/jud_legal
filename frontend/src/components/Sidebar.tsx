@@ -6,7 +6,8 @@ import { getApiUrl } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { 
   Users, Search, LayoutGrid, Scale, Activity, Sun, Moon, 
-  Calendar, User, LogOut, BookOpen, Menu, X, ChevronLeft, ChevronRight 
+  Calendar, User, LogOut, BookOpen, Menu, X, ChevronLeft, ChevronRight,
+  ShieldCheck
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -107,6 +108,12 @@ export default function Sidebar() {
       href: "/agenda",
       icon: Calendar,
       description: "Visualização cronológica",
+    },
+    {
+      name: "Auditoria & Evidências",
+      href: "/auditoria",
+      icon: ShieldCheck,
+      description: "LGPD, SOC 2 e ISO 27001",
     },
     {
       name: "Guia de Uso & Tutorial",

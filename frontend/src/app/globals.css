@@ -52,7 +52,53 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =====================================================================
-   ☀️ LIGHT MODE OVERRIDES
+   🌙 DARK MODE CONTRAST & LEGIBILITY ENHANCEMENTS
+   ===================================================================== */
+
+/* Alto contraste e legibilidade para textos secundários e legendas no tema escuro */
+html:not(.theme-light) .text-slate-400 {
+  color: #cbd5e1 !important; /* slate-300 para nitidez superior */
+}
+
+html:not(.theme-light) .text-slate-500 {
+  color: #94a3b8 !important; /* slate-400 para evitar texto apagado */
+}
+
+html:not(.theme-light) .text-slate-600 {
+  color: #64748b !important;
+}
+
+html:not(.theme-light) label {
+  color: #e2e8f0;
+  letter-spacing: 0.05em;
+}
+
+/* Placeholders mais nítidos no tema escuro */
+html:not(.theme-light) input::placeholder,
+html:not(.theme-light) textarea::placeholder {
+  color: #64748b;
+  opacity: 0.85;
+}
+
+/* Destaques de badges e status com alto brilho em fundo escuro */
+html:not(.theme-light) .text-indigo-400 {
+  color: #a5b4fc !important;
+}
+html:not(.theme-light) .text-emerald-400 {
+  color: #6ee7b7 !important;
+}
+html:not(.theme-light) .text-sky-400 {
+  color: #7dd3fc !important;
+}
+html:not(.theme-light) .text-amber-400 {
+  color: #fde68a !important;
+}
+html:not(.theme-light) .text-rose-400 {
+  color: #fca5a5 !important;
+}
+
+/* =====================================================================
+   ☀️ LIGHT MODE - CORES ESCURAS E NÍTIDAS PARA MÁXIMA LEGIBILIDADE
    ===================================================================== */
 
 /* Light mode root & body overrides */
@@ -62,32 +108,146 @@ h1, h2, h3, h4, h5, h6 {
   color: #0f172a !important; /* slate-900 */
 }
 
-/* Overrides for background utilities */
-.theme-light .bg-slate-950 {
-  background-color: #ffffff !important;
+/* Tipografia e Rótulos no Tema Claro (Letras escuras, nítidas e legíveis) */
+.theme-light label {
+  color: #0f172a !important; /* Quase preto para máxima nitidez */
+  font-weight: 700 !important;
+}
+
+.theme-light h1,
+.theme-light h2,
+.theme-light h3,
+.theme-light h4,
+.theme-light h5,
+.theme-light h6 {
   color: #0f172a !important;
 }
-.theme-light .bg-slate-900 {
-  background-color: #f1f5f9 !important; /* slate-100 */
+
+.theme-light p {
+  color: #334155 !important; /* slate-700 */
+}
+
+.theme-light .text-white {
   color: #0f172a !important;
 }
-.theme-light .bg-slate-900\/60 {
-  background-color: rgba(241, 245, 249, 0.6) !important;
+
+.theme-light .text-slate-100,
+.theme-light .text-slate-200 {
+  color: #0f172a !important; /* Quase preto */
 }
-.theme-light .bg-slate-850\/50 {
-  background-color: rgba(226, 232, 240, 0.5) !important; /* slate-200 */
+
+.theme-light .text-slate-300 {
+  color: #1e293b !important; /* slate-800 */
 }
-.theme-light .bg-slate-950\/40 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+
+.theme-light .text-slate-400 {
+  color: #1e293b !important; /* slate-800 - rótulos e textos principais bem escuros */
 }
-.theme-light .bg-slate-950\/80 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+
+.theme-light .text-slate-500 {
+  color: #334155 !important; /* slate-700 - textos secundários e ícones bem legíveis */
+}
+
+.theme-light .text-slate-600 {
+  color: #475569 !important; /* slate-600 */
+}
+
+.theme-light .text-slate-350 {
+  color: #1e293b !important;
+}
+
+.theme-light .text-xxs {
+  color: #334155 !important;
+}
+
+/* Sidebar Links no modo claro */
+.theme-light nav a {
+  color: #1e293b !important;
+}
+
+.theme-light nav a svg {
+  color: #334155 !important;
+}
+
+.theme-light nav a:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.theme-light nav a:hover svg {
+  color: #4338ca !important;
+}
+
+.theme-light nav a.bg-indigo-600,
+.theme-light nav a.bg-indigo-600 *,
+.theme-light nav a.bg-indigo-600 span {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+.theme-light nav a.bg-indigo-600 svg {
+  color: #ffffff !important;
+}
+
+.theme-light nav p {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+/* Botões inativos/secundários (ex: Pessoa Física/Jurídica, filtros) */
+.theme-light .bg-slate-800,
+.theme-light button.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
   border-color: #cbd5e1 !important;
 }
-.theme-light .bg-slate-800 {
-  background-color: #e2e8f0 !important; /* slate-200 */
+
+.theme-light .bg-slate-800:hover,
+.theme-light button.bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
+
+/* Overrides for background utilities in Light Mode */
+.theme-light .bg-slate-950,
+.theme-light .bg-slate-950\/95,
+.theme-light .bg-slate-950\/90,
+.theme-light .bg-slate-950\/80,
+.theme-light .bg-slate-950\/70,
+.theme-light .bg-slate-950\/60,
+.theme-light .bg-slate-950\/50,
+.theme-light .bg-slate-950\/40,
+.theme-light .bg-slate-950\/30,
+.theme-light .bg-slate-950\/20,
+.theme-light .bg-slate-950\/15,
+.theme-light .bg-slate-950\/10 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-light .bg-slate-900,
+.theme-light .bg-slate-900\/90,
+.theme-light .bg-slate-900\/80,
+.theme-light .bg-slate-900\/70,
+.theme-light .bg-slate-900\/60,
+.theme-light .bg-slate-900\/50,
+.theme-light .bg-slate-900\/40,
+.theme-light .bg-slate-900\/30,
+.theme-light .bg-slate-900\/20 {
+  background-color: #f8fafc !important; /* slate-50 */
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-light .bg-slate-850,
+.theme-light .bg-slate-850\/50,
+.theme-light .bg-slate-850\/80 {
+  background-color: #f1f5f9 !important; /* slate-100 */
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
 .theme-light .bg-slate-750,
 .theme-light .hover\:bg-slate-750:hover {
   background-color: #cbd5e1 !important; /* slate-300 */
@@ -97,6 +257,7 @@ h1, h2, h3, h4, h5, h6 {
 .theme-light .border-slate-800,
 .theme-light .border-slate-850,
 .theme-light .border-slate-900\/80,
+.theme-light .border-slate-800\/80,
 .theme-light .border-slate-700 {
   border-color: #cbd5e1 !important; /* slate-300 */
 }
@@ -104,27 +265,23 @@ h1, h2, h3, h4, h5, h6 {
   border-color: #94a3b8 !important; /* slate-400 */
 }
 
-/* Overrides for text color utilities */
-.theme-light .text-white {
-  color: #0f172a !important; /* slate-900 */
-}
-.theme-light .text-slate-200 {
-  color: #1e293b !important; /* slate-800 */
-}
-.theme-light .text-slate-300 {
-  color: #334155 !important; /* slate-700 */
-}
-.theme-light .text-slate-400 {
-  color: #475569 !important; /* slate-600 */
-}
-.theme-light .text-slate-500 {
-  color: #64748b !important; /* slate-500 */
-}
-.theme-light .text-slate-350 {
-  color: #334155 !important;
+/* Inputs em Light Mode */
+.theme-light input:not([type="checkbox"]):not([type="radio"]),
+.theme-light textarea,
+.theme-light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  font-weight: 500 !important;
 }
 
-/* Overrides to ensure light text inside dark components remains visible */
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #64748b !important;
+  opacity: 0.9 !important;
+}
+
+/* Overrides to ensure light text inside colored action buttons remains white */
 .theme-light .hero-container .text-white,
 .theme-light .bg-indigo-600,
 .theme-light .bg-indigo-600 *,
@@ -137,9 +294,7 @@ h1, h2, h3, h4, h5, h6 {
 .theme-light .bg-rose-600,
 .theme-light .bg-rose-600 *,
 .theme-light .bg-rose-500,
-.theme-light .bg-rose-500 *,
-.theme-light .bg-indigo-500,
-.theme-light .bg-indigo-500 * {
+.theme-light .bg-rose-500 * {
   color: #ffffff !important;
 }
 
@@ -186,7 +341,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Sidebar specific overrides */
 .theme-light aside {
   background-color: #ffffff !important;
-  border-right: 1px solid #e2e8f0 !important;
+  border-right: 1px solid #cbd5e1 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -195,19 +350,19 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(79, 70, 229, 0.1) !important;
 }
 .theme-light .text-indigo-400 {
-  color: #4f46e5 !important; /* dark indigo */
+  color: #4338ca !important; /* dark indigo 700 */
 }
 .theme-light .text-sky-400 {
-  color: #0284c7 !important; /* sky-600 */
+  color: #0369a1 !important; /* sky-700 */
 }
 .theme-light .text-emerald-400 {
-  color: #059669 !important; /* emerald-600 */
+  color: #047857 !important; /* emerald-700 */
 }
 .theme-light .text-amber-400 {
-  color: #d97706 !important; /* amber-600 */
+  color: #b45309 !important; /* amber-700 */
 }
 .theme-light .text-purple-400 {
-  color: #7c3aed !important; /* purple-600 */
+  color: #6d28d9 !important; /* purple-700 */
 }
 
 /* Badge backgrounds in light mode */
@@ -238,12 +393,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
-.theme-light .bg-slate-950 {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-
 /* Inputs autofocus ring */
 .theme-light input:focus,
 .theme-light textarea:focus,
@@ -269,3 +418,4 @@ h1, h2, h3, h4, h5, h6 {
   color: #0f1e33 !important;
   font-weight: 800 !important;
 }
+
